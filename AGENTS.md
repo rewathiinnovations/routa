@@ -121,3 +121,31 @@ gh issue create --label "Agent" --body "Agent: YourName\n\n[issue details]"
 
 ### 4. Close the Loop
 - Resolved? Update the local issue file with resolution notes and close the GitHub issue.
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Command | Port | Notes |
+|---|---|---|---|
+| Next.js web app | `npm run dev` | 3000 | Primary dev surface; uses SQLite by default — no external DB needed |
+| Unit tests | `npm run test:run` | — | Vitest; 135+ test files |
+| Lint | `npm run lint` | — | ESLint 9 flat config |
+| Storybook | `npm run storybook` | 6006 | Optional component dev |
+| E2E tests | `npm run test:e2e` | — | Playwright; needs dev server running first |
+
+### Quick-start checklist (after update script has run)
+
+1. `npm run dev` — starts Next.js on port 3000 with SQLite (no env vars required).
+2. The app auto-creates a default workspace on first visit.
+3. API base: `http://localhost:3000/api/` (e.g. `GET /api/workspaces`).
+
+### Non-obvious caveats
+
+- `npm install` **must** use `--legacy-peer-deps` — several TipTap / AI-SDK packages have peer-dep conflicts that block install otherwise.
+- `tools/entrix` is a **git submodule**. If the directory is empty, run `git submodule update --init tools/entrix`, then `pip install -e tools/entrix`.
+- `entrix` installs to `~/.local/bin` — ensure that directory is on `PATH`.
+- Husky hooks are set up automatically during `npm install` (via `prepare` script). Set `SKIP_HOOKS=1` to bypass pre-commit / pre-push hooks when needed.
+- The post-commit hook calls `entrix` via Python — it will warn (but not block) if `entrix` is not installed.
+- No `.env` file is required for local development; the app defaults to SQLite via `better-sqlite3`. AI agent features (Claude, OpenCode) need `ANTHROPIC_AUTH_TOKEN` set.
+- Desktop (Tauri) development additionally requires `npm --prefix apps/desktop install` and a Rust toolchain (already present at rustc 1.83.0).
